@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "https://todoapp-backend-35tt.onrender.com"; // Backend URL
+const API_URL = "https://todoapp-backend-8om5.onrender.com"; // Backend URL
 
 const Todos = () => {
   const [tasks, setTasks] = useState([]); // State to store the tasks...
