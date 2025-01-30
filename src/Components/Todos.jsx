@@ -1,79 +1,77 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "https://todoapp-backend-8om5.onrender.com"; // Backend URL
+// Correct API URL (Important!)
+const API_URI = "https://todoapp-backend-8yyp.onrender.com/api"; 
 
 const Todos = () => {
-  const [tasks, setTasks] = useState([]); // State to store the tasks...
-  const [task, setTask] = useState(""); // State to store the current input...
-
-  // Fetch data from backend..
+  const [tasks, setTasks] = useState([]);
+  const [task, setTask] = useState("");
 
   useEffect(() => {
-
     const fetchTodos = async () => {
       try {
-        const response = await fetch(API_URL)
-        const data = await response.json()
-        setTasks(data);  //setting fetched tasks in state...
+        const response = await fetch(`${API_URI}/todos`);
+        if (!response.ok) { // Check for HTTP errors (404, 500, etc.)
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setTasks(data);
       } catch (error) {
-        console.error("Error fetching tasks..",error);
+        console.error("Error fetching tasks:", error);
       }
-    }
+    };
     fetchTodos();
-  }, [])
-
-  // Add a new task to backend...
+  }, []);
 
   const handleAddTask = async (e) => {
     e.preventDefault();
     if (task.trim() === "") return;
     try {
-      const response = await fetch(API_URL,{
+      const response = await fetch(API_URI + "/todos", { 
         method: "POST",
-        headers : { "content-type" : "application/json" },
-        body : JSON.stringify({ text: task }) // sending new task to backend....
-      })
-
-      //Adding new tasks to UI....
-      
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: task }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const newTask = await response.json();
-      setTasks([ ...tasks, newTask ]) // added new task to UI...
-      setTask(""); // clearing input..
-
+      setTasks([...tasks, newTask]);
+      setTask("");
     } catch (error) {
-      console.error("Error adding tasks", error);
-    }
-  }
-
-  // Toggle task status...
-
-  const toggleTaskStatus = async ( id, done ) => {
-    try {
-      const response = await fetch(`${API_URL}/${id}`,{
-        method: "PUT",
-        headers: { "content-type" : "application/json" },
-        body: JSON.stringify({done: !done}), // Toggle done status
-      })
-
-      const updatedTask = await response.json()
-      setTasks(tasks.map( (task) => ( task._id === id ? updatedTask: task  )));
-    } catch (error) {
-      console.error("error while updating", error);
+      console.error("Error adding tasks:", error);
     }
   };
 
-  // Delete function...
+  const toggleTaskStatus = async (id, done) => {
+    try {
+      const response = await fetch(`${API_URI}/todos/${id}`, { 
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ done: !done }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const updatedTask = await response.json();
+      setTasks(tasks.map((task) => (task._id === id ? updatedTask : task)));
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  };
 
   const deleteTodo = async (id) => {
     try {
-      await fetch(`${API_URL}/${id}`, { method:"DELETE" } );
-      setTasks(tasks.filter((task) => task._id !== id )); // remove the todo from the UI...
+      const response = await fetch(`${API_URI}/todos/${id}`, { method: "DELETE" }); 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      setTasks(tasks.filter((task) => task._id !== id));
     } catch (error) {
-      console.error("error while deleting", error);
+      console.error("Error deleting task:", error);
     }
-  }
+  };
   
-
   return (
     <div className="min-h-screen bg-gray-100 p-5">
       <h1 className="text-4xl font-bold text-center text-blue-500 mb-5">
